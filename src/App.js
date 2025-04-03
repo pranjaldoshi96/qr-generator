@@ -31,6 +31,7 @@ function App() {
   const [logoImage, setLogoImage] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
   const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState('appearance');
   
   const qrRef = useRef(null);
   
@@ -44,6 +45,11 @@ function App() {
   const handleTextChange = (e) => {
     setText(e.target.value);
     setError('');
+  };
+  
+  // Handle tab change
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
   };
   
   // Handle logo upload
@@ -162,16 +168,11 @@ function App() {
       </header>
       
       <main className="container">
-        <section className="qr-form">
-          <h2>Create Your QR Code</h2>
-          
-          <div className="option-group">
-            <div className="option-group-title">
-              <span className="option-group-icon">{Icons.type}</span>
-              QR Code Type
-            </div>
-            
-            <div className="form-group">
+        <section className="qr-generator">
+          {/* QR Input Area */}
+          <div className="qr-input-area">
+            <div className="qr-type-selector">
+              <label htmlFor="qr-type">QR Code Type:</label>
               <select 
                 id="qr-type" 
                 value={qrType} 
@@ -185,39 +186,30 @@ function App() {
                 <option value="wifi">WiFi Network</option>
               </select>
             </div>
-          </div>
-          
-          <div className="option-group">
-            <div className="option-group-title">
-              <span className="option-group-icon">{Icons.content}</span>
-              Content
-            </div>
             
-            <div className="form-group">
+            <div className="qr-content-input">
               <label htmlFor="qr-content">
                 {qrType === 'url' ? 'Enter URL:' : 
                  qrType === 'email' ? 'Enter Email:' :
                  qrType === 'tel' ? 'Enter Phone Number:' :
                  qrType === 'sms' ? 'Enter Phone Number:' :
-                 qrType === 'wifi' ? 'Enter SSID,Password,Type:' :
+                 qrType === 'wifi' ? 'Enter SSID, Password, Type:' :
                  'Enter Text:'}
               </label>
-              <div className="input-with-icon">
-                <input
-                  type="text"
-                  id="qr-content"
-                  value={text}
-                  onChange={handleTextChange}
-                  placeholder={
-                    qrType === 'url' ? 'https://example.com' : 
-                    qrType === 'email' ? 'user@example.com' :
-                    qrType === 'tel' ? '+1234567890' :
-                    qrType === 'sms' ? '+1234567890' :
-                    qrType === 'wifi' ? 'MyNetwork,password,WPA' :
-                    'Enter content here'
-                  }
-                />
-              </div>
+              <input
+                type="text"
+                id="qr-content"
+                value={text}
+                onChange={handleTextChange}
+                placeholder={
+                  qrType === 'url' ? 'https://example.com' : 
+                  qrType === 'email' ? 'user@example.com' :
+                  qrType === 'tel' ? '+1234567890' :
+                  qrType === 'sms' ? '+1234567890' :
+                  qrType === 'wifi' ? 'MyNetwork,password,WPA' :
+                  'Enter content here'
+                }
+              />
               {qrType === 'wifi' && (
                 <div className="helper-text">
                   Format: NetworkName,Password,EncryptionType
@@ -226,123 +218,215 @@ function App() {
             </div>
           </div>
           
-          <div className="option-group">
-            <div className="option-group-title">
-              <span className="option-group-icon">{Icons.customize}</span>
-              Appearance
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="qr-size">Size: {qrSize}px</label>
-              <input
-                type="range"
-                id="qr-size"
-                min="100"
-                max="400"
-                value={qrSize}
-                onChange={(e) => setQrSize(Number(e.target.value))}
-              />
-            </div>
-            
-            <div className="color-inputs">
-              <div className="form-group color-input">
-                <label htmlFor="qr-fg-color">Foreground:</label>
-                <div 
-                  className="color-preview" 
-                  style={{ backgroundColor: qrFgColor }}
-                ></div>
-                <input
-                  type="color"
-                  id="qr-fg-color"
-                  value={qrFgColor}
-                  onChange={(e) => setQrFgColor(e.target.value)}
-                />
+          {/* QR Preview and Options */}
+          <div className="qr-preview-options">
+            {/* QR Preview */}
+            <div className="qr-preview">
+              <div className="qr-code-container" ref={qrRef}>
+                {text ? (
+                  <QRCodeCanvas
+                    value={getQRValue()}
+                    size={qrSize}
+                    bgColor={qrBgColor}
+                    fgColor={qrFgColor}
+                    level={qrLevel}
+                    includeMargin={includeMargin}
+                    renderAs="canvas"
+                    imageSettings={
+                      logoImage ? {
+                        src: logoImage,
+                        x: undefined,
+                        y: undefined,
+                        height: qrSize * 0.2,
+                        width: qrSize * 0.2,
+                        excavate: true,
+                      } : undefined
+                    }
+                  />
+                ) : (
+                  <div className="placeholder">
+                    Enter content to generate QR code
+                  </div>
+                )}
               </div>
               
-              <div className="form-group color-input">
-                <label htmlFor="qr-bg-color">Background:</label>
-                <div 
-                  className="color-preview" 
-                  style={{ backgroundColor: qrBgColor }}
-                ></div>
-                <input
-                  type="color"
-                  id="qr-bg-color"
-                  value={qrBgColor}
-                  onChange={(e) => setQrBgColor(e.target.value)}
-                />
+              <div className="download-options">
+                <button 
+                  className="download-btn" 
+                  onClick={() => downloadQRCode('png')}
+                  disabled={!text}
+                >
+                  PNG
+                </button>
+                <button 
+                  className="download-btn" 
+                  onClick={() => downloadQRCode('jpg')}
+                  disabled={!text}
+                >
+                  JPG
+                </button>
+                <button 
+                  className="download-btn" 
+                  onClick={() => downloadQRCode('svg')}
+                  disabled={!text}
+                >
+                  SVG
+                </button>
               </div>
             </div>
             
-            <div className="form-group">
-              <label htmlFor="qr-style">QR Pattern Style:</label>
-              <select 
-                id="qr-style" 
-                value={qrStyle} 
-                onChange={(e) => setQrStyle(e.target.value)}
-              >
-                <option value="squares">Squares (Default)</option>
-                <option value="dots">Dots (Rounded)</option>
-              </select>
-            </div>
-          </div>
-          
-          <div className="option-group">
-            <div className="option-group-title">
-              <span className="option-group-icon">{Icons.advanced}</span>
-              Advanced Options
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="qr-level">Error Correction:</label>
-              <select 
-                id="qr-level" 
-                value={qrLevel} 
-                onChange={(e) => setQrLevel(e.target.value)}
-              >
-                <option value="L">Low (7%)</option>
-                <option value="M">Medium (15%)</option>
-                <option value="Q">Quartile (25%)</option>
-                <option value="H">High (30%) - Best for logos</option>
-              </select>
-            </div>
-            
-            <div className="form-group checkbox">
-              <input
-                type="checkbox"
-                id="qr-margin"
-                checked={includeMargin}
-                onChange={(e) => setIncludeMargin(e.target.checked)}
-              />
-              <label htmlFor="qr-margin">Include Margin (Quiet Zone)</label>
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="logo-upload">Add Logo Image:</label>
-              <input
-                type="file"
-                id="logo-upload"
-                accept="image/*"
-                onChange={handleLogoUpload}
-              />
-              {logoImage && (
+            {/* QR Options */}
+            <div className="qr-options">
+              <div className="tabs">
                 <button 
-                  className="remove-logo" 
-                  onClick={removeLogo}
+                  className={`tab-btn ${activeTab === 'appearance' ? 'active' : ''}`}
+                  onClick={() => handleTabChange('appearance')}
                 >
-                  <span className="button-icon">{Icons.reset}</span>
-                  Remove Logo
+                  <span className="button-icon">{Icons.customize}</span>
+                  Appearance
                 </button>
-              )}
-              {logoImage && qrLevel !== 'H' && (
-                <div className="helper-text">
-                  Note: You should use "High" error correction with logos
-                </div>
-              )}
+                <button 
+                  className={`tab-btn ${activeTab === 'advanced' ? 'active' : ''}`}
+                  onClick={() => handleTabChange('advanced')}
+                >
+                  <span className="button-icon">{Icons.advanced}</span>
+                  Advanced
+                </button>
+              </div>
+              
+              <div className="tab-content">
+                {/* Appearance Tab */}
+                {activeTab === 'appearance' && (
+                  <div className="appearance-options">
+                    <div className="option-row">
+                      <div className="option">
+                        <label htmlFor="qr-size">Size: {qrSize}px</label>
+                        <input
+                          type="range"
+                          id="qr-size"
+                          min="100"
+                          max="400"
+                          value={qrSize}
+                          onChange={(e) => setQrSize(Number(e.target.value))}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="option-row">
+                      <div className="option">
+                        <label htmlFor="qr-fg-color">Foreground Color:</label>
+                        <div className="color-input">
+                          <div 
+                            className="color-preview" 
+                            style={{ backgroundColor: qrFgColor }}
+                          ></div>
+                          <input
+                            type="color"
+                            id="qr-fg-color"
+                            value={qrFgColor}
+                            onChange={(e) => setQrFgColor(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="option">
+                        <label htmlFor="qr-bg-color">Background Color:</label>
+                        <div className="color-input">
+                          <div 
+                            className="color-preview" 
+                            style={{ backgroundColor: qrBgColor }}
+                          ></div>
+                          <input
+                            type="color"
+                            id="qr-bg-color"
+                            value={qrBgColor}
+                            onChange={(e) => setQrBgColor(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="option-row">
+                      <div className="option">
+                        <label htmlFor="qr-style">Pattern Style:</label>
+                        <select 
+                          id="qr-style" 
+                          value={qrStyle} 
+                          onChange={(e) => setQrStyle(e.target.value)}
+                        >
+                          <option value="squares">Squares (Default)</option>
+                          <option value="dots">Dots (Rounded)</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Advanced Tab */}
+                {activeTab === 'advanced' && (
+                  <div className="advanced-options">
+                    <div className="option-row">
+                      <div className="option">
+                        <label htmlFor="qr-level">Error Correction:</label>
+                        <select 
+                          id="qr-level" 
+                          value={qrLevel} 
+                          onChange={(e) => setQrLevel(e.target.value)}
+                        >
+                          <option value="L">Low (7%)</option>
+                          <option value="M">Medium (15%)</option>
+                          <option value="Q">Quartile (25%)</option>
+                          <option value="H">High (30%) - Best for logos</option>
+                        </select>
+                      </div>
+                    </div>
+                    
+                    <div className="option-row">
+                      <div className="option checkbox">
+                        <input
+                          type="checkbox"
+                          id="qr-margin"
+                          checked={includeMargin}
+                          onChange={(e) => setIncludeMargin(e.target.checked)}
+                        />
+                        <label htmlFor="qr-margin">Include Margin (Quiet Zone)</label>
+                      </div>
+                    </div>
+                    
+                    <div className="option-row">
+                      <div className="option">
+                        <label htmlFor="logo-upload">Add Logo Image:</label>
+                        <div className="logo-upload">
+                          <input
+                            type="file"
+                            id="logo-upload"
+                            accept="image/*"
+                            onChange={handleLogoUpload}
+                          />
+                          {logoImage && (
+                            <button 
+                              className="remove-logo" 
+                              onClick={removeLogo}
+                            >
+                              <span className="button-icon">{Icons.reset}</span>
+                              Remove Logo
+                            </button>
+                          )}
+                          {logoImage && qrLevel !== 'H' && (
+                            <div className="helper-text warning">
+                              High error correction recommended for logos
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           
-          <div className="action-buttons">
+          <div className="actions">
             <button 
               className="reset-btn" 
               onClick={resetForm}
@@ -358,75 +442,6 @@ function App() {
               {error}
             </div>
           )}
-        </section>
-        
-        <section className="qr-display">
-          <h2>Your QR Code</h2>
-          <div className="qr-code-container" ref={qrRef}>
-            {text ? (
-              <QRCodeCanvas
-                value={getQRValue()}
-                size={qrSize}
-                bgColor={qrBgColor}
-                fgColor={qrFgColor}
-                level={qrLevel}
-                includeMargin={includeMargin}
-                renderAs="canvas"
-                imageSettings={
-                  logoImage ? {
-                    src: logoImage,
-                    x: undefined,
-                    y: undefined,
-                    height: qrSize * 0.2,
-                    width: qrSize * 0.2,
-                    excavate: true,
-                  } : undefined
-                }
-              />
-            ) : (
-              <div className="placeholder">
-                Enter content to generate QR code
-              </div>
-            )}
-          </div>
-          
-          <div className="option-group">
-            <div className="option-group-title">
-              <span className="option-group-icon">{Icons.download}</span>
-              Download Options
-            </div>
-            <div className="download-buttons">
-              <button 
-                className="download-btn" 
-                onClick={() => downloadQRCode('png')}
-                disabled={!text}
-              >
-                PNG
-              </button>
-              <button 
-                className="download-btn" 
-                onClick={() => downloadQRCode('jpg')}
-                disabled={!text}
-              >
-                JPG
-              </button>
-              <button 
-                className="download-btn" 
-                onClick={() => downloadQRCode('svg')}
-                disabled={!text}
-              >
-                SVG
-              </button>
-            </div>
-          </div>
-          
-          <div className="test-scan">
-            <div className="option-group-title">
-              <span className="option-group-icon">{Icons.scan}</span>
-              Test Your QR Code
-            </div>
-            <p>Scan with your device's camera to test if the QR code works correctly.</p>
-          </div>
         </section>
       </main>
       
