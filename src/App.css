@@ -1025,3 +1025,19 @@ footer {
     min-height: 200px;
   }
 }
+
+/* Ad Container Styles */
+.ad-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 1rem auto;
+  text-align: center;
+  overflow: hidden;
+  min-height: 90px;
+  padding: 10px;
+  background-color: var(--light-bg);
+}
+
+.dark-mode .ad-container {
+  background-color: var(--dark-bg);
+}

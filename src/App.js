@@ -154,6 +154,29 @@ function App() {
     }
   };
   
+  const AdContainer = () => {
+    React.useEffect(() => {
+      // This tries to load an ad when the component mounts
+      try {
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+      } catch (e) {
+        console.error('AdSense error:', e);
+      }
+    }, []);
+
+    return (
+      <div className="ad-container">
+        <ins className="adsbygoogle"
+          style={{ display: 'block' }}
+          data-ad-client="ca-pub-4382992337001515"
+          data-ad-slot="YOUR_AD_SLOT_ID" // Replace with your actual ad slot ID
+          data-ad-format="auto"
+          data-full-width-responsive="true">
+        </ins>
+      </div>
+    );
+  };
+  
   return (
     <div className={`App ${darkMode ? 'dark-mode' : ''}`}>
       <header className="App-header">
@@ -166,6 +189,8 @@ function App() {
           {darkMode ? '☀️' : '🌙'}
         </button>
       </header>
+      
+      <AdContainer />
       
       <main className="container">
         <section className="qr-generator">
@@ -444,6 +469,8 @@ function App() {
           )}
         </section>
       </main>
+      
+      <AdContainer />
       
       <footer>
         <div className="help-section">
