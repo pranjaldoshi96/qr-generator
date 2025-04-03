@@ -2,7 +2,7 @@
   "name": "qr-code-generator",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://pranjaldoshi96.github.io/qr-code-generator",
+  "homepage": "https://pranjaldoshi96.github.io/qr-generator",
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
