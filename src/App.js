@@ -486,7 +486,7 @@ function App() {
             <li>Download in your preferred format</li>
           </ol>
         </div>
-        <p>© 2023 QR Code Generator</p>
+        <p>© QR Code Generator - Pranjal Doshi</p>
       </footer>
     </div>
   );
